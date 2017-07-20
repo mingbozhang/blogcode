@@ -27,32 +27,84 @@ public class RedBlackTree {
         Node addedNode = insertRedNode(value);
 
         //调整树结构，使之符合红黑树性质
-        fixUpTree(addedNode);
+        insertFixUpCase1(addedNode);
 
         return true;
     }
 
 
     /**
-     * 把node作为新加入的节点进行红黑树结构调整，使之符合所有性质。
+     * 情形3:父节点和叔父节点都是红色。这种情况下，我们需要将祖父节点的颜色下沉一层，即祖父节点变成红色，父节点和叔父变成黑色。
      *
      * @param node
      */
-    private void fixUpTree(Node node) {
-        /*
+    private void insertFixUpCase3(Node node) {
 
+        //父节点是红色
+
+        Node uncleNode = getUncleNode(node);
+
+        if (uncleNode != null) {
+
+            if (uncleNode.color == Color.RED) {
+                //叔父节点是红色
+
+                    /*
+                         ...                     ...
+                        n1(b)                    n1(r)
+                       /      \                 /    \
+                     n2(r)    n3(r)    ==>    n2(b)  n2(b)   ==>  （按照情形一的方式对n1节点进行调整）
+                     /                        /
+                   new(r)                  new(r)
+
+                     */
+                //情形3:父节点和叔父节点都是红色。这种情况下，我们需要将祖父节点的颜色下沉一层，即祖父节点变成红色，父节点和叔父变成黑色。
+
+
+                uncleNode.color = Color.BLACK;
+                node.parent.color = Color.BLACK;
+
+                getGrandParentNode(node).color = Color.RED;
+
+                //调整
+                insertFixUpCase1(getGrandParentNode(node));
+
+
+            } else {
+                //叔父节点是黑色
+                //情形4：父节点是红色，叔父节点是黑色，祖父节点肯定是黑色的，要不然就违反了红黑树不能连续红色节点的性质
+                insertFixUpCase4(node);
+            }
+        }
+
+
+    }
+
+    /**
+     * 情形1:如果插入节点是根节点，则设置为黑色
+     *
+     * @param node
+     */
+    private void insertFixUpCase1(Node node) {
+        if (node.parent == null) {
+        /*
 
             root(b)
 
-
         */
-        //情形1:如果插入节点是根节点，则设置为黑色
-        if (node.parent == null) {
+            //情形1:如果插入节点是根节点，则设置为黑色
+            root = node;
             node.color = Color.BLACK;
-            return;
+        } else {
+            insertFixUpCase2(node);
         }
 
+    }
+
+    private void insertFixUpCase2(Node node) {
         if (node.parent.color == Color.BLACK) {
+            //父节点是黑色
+
             /*
 
                   root(b)
@@ -65,37 +117,99 @@ public class RedBlackTree {
             //情形2：如果父节点是黑色的，所有性质都没有受到影响
             //不需要做什么
         } else {
-            Node uncleNode = getUncleNode(node);
-
-            if (uncleNode != null && uncleNode.color == Color.RED && node.parent.color == Color.RED) {
-
-                /*
-
-                     ...                     ...
-                    n1(b)                    n1(r)
-                   /      \                 /    \
-                 n2(r)    n3(r)    ==>    n2(b)  n2(b)   ==>  （按照情形一的方式对n1节点进行调整）
-                 /                        /
-               new(r)                  new(r)
-
-                 */
-                //情形3:父节点和叔父节点都是红色。这种情况下，我们需要将祖父节点的颜色下沉一层，即祖父节点变成红色，父节点和叔父变成黑色。
-                uncleNode.color = Color.BLACK;
-                node.parent.color = Color.BLACK;
-
-                getGrandpaNode(node).color = Color.RED;
-
-                //调整
-                fixUpTree(getGrandpaNode(node));
-            }
-
-            //如果，祖父是
-
-
+            insertFixUpCase3(node);
         }
 
     }
 
+    /**
+     * 情况4：<br>
+     * 该节点红色，父节点是红色，该节点是父节点的"右孩子"，叔父节点是黑色或缺少，祖父节点是黑色，父节点是祖父节点"左孩子"<br>
+     * 或者：该节点红色，父节点是红色，该节点是父节点的"左孩子"，叔父节点是黑色或缺少，祖父节点是黑色，父节点是祖父节点"右孩子"<br>
+     *
+     * @param node
+     */
+    private void insertFixUpCase4(Node node) {
+
+        /*
+                ...                      ...
+                n1(b)                     n1(b)
+                /   \                     /   \
+              n2(r)  n3(b)    ==>      n4(r)  n3(b)
+                \       ...            /       ...
+                 n4(r)               n2(r)
+                  ...                ...
+
+         */
+
+        if (node.parent.leftChild == node && getGrandParentNode(node).rightChild == node.parent) {
+
+            rotateRight(node);
+
+        } else if (node.parent.rightChild == node && getGrandParentNode(node).leftChild == node.parent) {
+            rotateLeft(node);
+        }
+
+
+    }
+
+    /**
+     * 树左旋
+     */
+    private void rotateLeft(Node pivot) {
+         /*
+                n1(b)                     n1(b)
+                /   \                     /   \
+              n2(r)  n3(b)    ==>      n4(r)  n3(b)
+                \                      /
+                 n4(r)               n2(r)
+
+          其中n4(r)就是pivot
+
+         */
+
+        //对应图中的n2(r)
+        Node parent = pivot.parent;
+        //对应图中的n1(b)
+        Node grandParent = pivot.parent.parent;
+
+        grandParent.leftChild = pivot;
+        pivot.parent = grandParent;
+
+        parent.parent = pivot;
+        parent.rightChild = pivot.leftChild;
+        pivot.leftChild = parent;
+    }
+
+    /**
+     * 树右旋
+     */
+    private void rotateRight(Node pivot) {
+
+        /*
+                n1(b)                     n1(b)
+                /   \                     /   \
+              n2(b)  n3(r)    ==>      n2(b)  n4(r)
+                      /                         \
+                 n4(r)                          n3(r)
+
+          其中n4(r)就是pivot
+
+         */
+
+        //对应图中的n3(r)
+        Node parent = pivot.parent;
+        //对应图中的n1(b)
+        Node grandParent = pivot.parent.parent;
+
+        grandParent.rightChild = pivot;
+        pivot.parent = grandParent;
+
+        parent.parent = pivot;
+        parent.leftChild = pivot.rightChild;
+        pivot.rightChild = parent;
+
+    }
 
     /**
      * 将节点插入到树中，默认都是红色
@@ -107,6 +221,11 @@ public class RedBlackTree {
         Node node = new Node();
         node.color = Color.RED;
         node.value = value;
+
+        if (root == null) {
+            root = node;
+            return root;
+        }
 
         Node currentNode = root;
 
@@ -149,7 +268,7 @@ public class RedBlackTree {
      * @param node
      * @return
      */
-    private Node getGrandpaNode(Node node) {
+    private Node getGrandParentNode(Node node) {
         return node.parent.parent;
     }
 
@@ -165,6 +284,27 @@ public class RedBlackTree {
             return node.parent.parent.rightChild;
         } else {
             return node.parent.parent.leftChild;
+        }
+
+    }
+
+    public void printNodes() {
+        printNode(root);
+    }
+
+    /**
+     * 中序遍历
+     *
+     * @param node
+     */
+    private void printNode(Node node) {
+        if (node.leftChild != null) {
+            printNode(node.leftChild);
+        }
+        System.out.println(node.value);
+
+        if (node.rightChild != null) {
+            printNode(node.rightChild);
         }
 
     }
