@@ -306,36 +306,62 @@ public class RedBlackTree {
 
 
         Node nodeForDelete = findNode(value);
+        if (nodeForDelete == null) {
+            //未找到
+            return false;
+        }
 
         if (isLeaf(nodeForDelete.rightChild)) {
-            //如果右孩子是叶子节点
-            Node child = nodeForDelete.leftChild;
+            deleteOneChild(nodeForDelete);
+            return true;
+        }
 
-            if (nodeForDelete.parent == null) {
-                //如果nodeForDelete节点就是根节点
+        Node smallest = getSmallestChild(nodeForDelete.rightChild);
+        swapValue(nodeForDelete, smallest);
+        deleteOneChild(smallest);
 
-                if (isLeaf(child)) {
-                    //如果待替换的这个孩子节点是个叶子节点
-                    //说明这棵树只有一个根节点
-                    //根节点置为空，这颗红黑树成为一棵空树
-                    root = null;
-                } else {
-                    //孩子节点取代父节点成为新的根节点
-                    child.parent = null;
+        return true;
+    }
 
-                    //根据性质2 根节点必须是黑色的
-                    child.color = Color.BLACK;
-                    root = child;
-                }
+    private void swapValue(Node node1, Node node2) {
 
+        int temp = node1.value;
+        node1.value = node2.value;
+        node2.value = temp;
+    }
+
+    private void deleteOneChild(Node nodeForDelete) {
+        //如果右孩子是叶子节点
+        Node child = isLeaf(nodeForDelete.leftChild) ? nodeForDelete.rightChild : nodeForDelete.leftChild;
+
+        if (nodeForDelete.parent == null) {
+            //如果nodeForDelete节点就是根节点
+
+            if (isLeaf(child)) {
+                //如果待替换的这个孩子节点是个叶子节点
+                //说明这棵树只有一个根节点
+                //根节点置为空，这颗红黑树成为一棵空树
+                root = null;
             } else {
-                //如果nodeForDelete节点不是根节点
-                //先把待删除节点的儿子节点替换他
-                if (nodeForDelete.parent.leftChild == nodeForDelete) {
-                    nodeForDelete.parent.leftChild = child;
-                } else {
-                    nodeForDelete.parent.rightChild = child;
-                }
+                //孩子节点取代父节点成为新的根节点
+                child.parent = null;
+
+                //根据性质2 根节点必须是黑色的
+                child.color = Color.BLACK;
+                root = child;
+            }
+
+        } else {
+            //如果nodeForDelete节点不是根节点
+            //先把待删除节点的儿子节点替换他
+            if (nodeForDelete.parent.leftChild == nodeForDelete) {
+                nodeForDelete.parent.leftChild = child;
+            } else {
+                nodeForDelete.parent.rightChild = child;
+            }
+
+            if (child != null) {
+
                 child.parent = nodeForDelete.parent;
 
                 //调整使之符合红黑树的性质。如果是红色的就不需要做什么，因为他被删除了并不影响红黑树的性质被破坏
@@ -354,14 +380,27 @@ public class RedBlackTree {
 
 
                 }
-
-
             }
 
+
+        }
+    }
+
+    /**
+     * 获取指定node下的最小节点
+     *
+     * @param node
+     * @return
+     */
+    private Node getSmallestChild(Node node) {
+
+        Node leftChildNode = node;
+
+        while (leftChildNode.leftChild != null) {
+            leftChildNode = leftChildNode.leftChild;
         }
 
-
-        return true;
+        return leftChildNode;
     }
 
     /**
