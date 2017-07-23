@@ -32,6 +32,45 @@ public class RedBlackTree {
         return true;
     }
 
+    /**
+     * @param value
+     * @return
+     */
+    private Node findNode(int value) {
+
+        if (root == null) {
+            return null;
+        }
+
+        Node currentNode = root;
+
+        while (true) {
+
+            if (value == currentNode.value) {
+                //找到了
+                return currentNode;
+
+            } else if (value > currentNode.value) {
+
+                if (currentNode.rightChild != null) {
+                    currentNode = currentNode.rightChild;
+                } else {
+                    return null;
+                }
+
+            } else {
+                if (currentNode.leftChild != null) {
+                    currentNode = currentNode.leftChild;
+                } else {
+                    return null;
+                }
+            }
+
+
+        }
+
+    }
+
 
     /**
      * 情形3:父节点和叔父节点都是红色。这种情况下，我们需要将祖父节点的颜色下沉一层，即祖父节点变成红色，父节点和叔父变成黑色。
@@ -257,10 +296,239 @@ public class RedBlackTree {
         return node;
     }
 
+    /**
+     * 删除节点后，取直接后继替换到被删除节点
+     *
+     * @param value
+     * @return
+     */
     public boolean delete(int value) {
+
+
+        Node nodeForDelete = findNode(value);
+
+        if (isLeaf(nodeForDelete.rightChild)) {
+            //如果右孩子是叶子节点
+            Node child = nodeForDelete.leftChild;
+
+            if (nodeForDelete.parent == null) {
+                //如果nodeForDelete节点就是根节点
+
+                if (isLeaf(child)) {
+                    //如果待替换的这个孩子节点是个叶子节点
+                    //说明这棵树只有一个根节点
+                    //根节点置为空，这颗红黑树成为一棵空树
+                    root = null;
+                } else {
+                    //孩子节点取代父节点成为新的根节点
+                    child.parent = null;
+
+                    //根据性质2 根节点必须是黑色的
+                    child.color = Color.BLACK;
+                    root = child;
+                }
+
+            } else {
+                //如果nodeForDelete节点不是根节点
+                //先把待删除节点的儿子节点替换他
+                if (nodeForDelete.parent.leftChild == nodeForDelete) {
+                    nodeForDelete.parent.leftChild = child;
+                } else {
+                    nodeForDelete.parent.rightChild = child;
+                }
+                child.parent = nodeForDelete.parent;
+
+                //调整使之符合红黑树的性质。如果是红色的就不需要做什么，因为他被删除了并不影响红黑树的性质被破坏
+                if (nodeForDelete.color == Color.BLACK) {
+                    //如果待删除节点是黑色的
+
+                    if (child.color == Color.RED) {
+                        //如果孩子节点是红色，只要将它变成黑色就可以达到平衡，穿过这个节点的所有路径的黑色节点数量没有减少，保证了性质5
+                        child.color = Color.BLACK;
+
+                    } else {
+
+                        deleteFixUpCase1(child);
+
+                    }
+
+
+                }
+
+
+            }
+
+        }
+
 
         return true;
     }
+
+    /**
+     * 这里用null表示叶子节点
+     *
+     * @param node
+     * @return
+     */
+    private boolean isLeaf(Node node) {
+
+        if (node == null) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * 情形1：node是新的根
+     *
+     * @param node
+     */
+    private void deleteFixUpCase1(Node node) {
+        if (node.parent == null) {
+            //情形1：node是新的根
+
+        } else {
+            deleteFixUpCase2(node);
+        }
+
+    }
+
+    /**
+     * 情形2：node的兄弟节点是红色
+     *
+     * @param node
+     */
+    private void deleteFixUpCase2(Node node) {
+
+        Node sib = sibling(node);
+        if (sib.color == Color.RED) {
+
+            sib.color = Color.BLACK;
+            node.parent.color = Color.RED;
+
+
+            /*
+                     ...
+                     n1(b)                           n3(b)
+                     /  \                             /  \
+                  n2(b)   n3(r)       ==>         n1(r)  n5(b)
+                          /   \                    /  \
+                       n4(b)  n5(b)             n2(b) n4(b)
+                       ...    ...               ...   ...
+             */
+            if (node == node.parent.leftChild) {
+                rotateLeft(sib);
+            } else {
+                rotateRight(sib);
+            }
+
+        }
+
+        deleteFixUpCase3(node);
+
+    }
+
+    /**
+     * 情形3：node的父亲、兄弟、兄弟的儿子都是黑色。
+     *
+     * @param node
+     */
+    private void deleteFixUpCase3(Node node) {
+        Node sib = sibling(node);
+
+        if (sib != null
+                && sib.leftChild != null
+                && sib.rightChild != null
+                && node.parent.color == Color.BLACK
+                && sib.color == Color.BLACK
+                && sib.leftChild.color == Color.BLACK
+                && sib.rightChild.color == Color.BLACK) {
+
+
+        } else {
+            deleteFixUpCase4(node);
+        }
+    }
+
+    /**
+     * 情形4：node的兄弟、兄弟的儿子都是黑色，而父亲节点是红色。
+     *
+     * @param node
+     */
+    private void deleteFixUpCase4(Node node) {
+        Node sib = sibling(node);
+
+        if (sib != null
+                && sib.leftChild != null
+                && sib.rightChild != null
+                && node.parent.color == Color.BLACK
+                && sib.color == Color.BLACK
+                && sib.leftChild.color == Color.BLACK
+                && sib.rightChild.color == Color.BLACK) {
+
+            sib.color = Color.RED;
+            node.parent.color = Color.BLACK;
+
+        } else {
+            deleteFixUpCase5(node);
+
+        }
+    }
+
+    /**
+     * 情形5：node的兄弟是黑色、兄弟的左儿子是红色、兄弟的右儿子是黑色，并且node是其父亲的左儿子
+     *
+     * @param node
+     */
+    private void deleteFixUpCase5(Node node) {
+
+        Node sib = sibling(node);
+        if (sib.color == Color.BLACK) {
+            if (node == node.parent.leftChild
+                    && sib.rightChild.color == Color.BLACK
+                    && sib.leftChild.color == Color.RED
+                    ) {
+
+                sib.color = Color.RED;
+                sib.leftChild.color = Color.BLACK;
+                rotateRight(sib);
+
+            } else if (node == node.parent.rightChild
+                    && sib.leftChild.color == Color.BLACK
+                    && sib.rightChild.color == Color.RED) {
+
+                sib.color = Color.RED;
+                sib.rightChild.color = Color.BLACK;
+                rotateLeft(sib);
+            }
+        }
+
+        deleteFixUpCase6(node);
+
+    }
+
+    /**
+     * 情形6：node的兄弟是黑色、兄弟的右儿子是红色，而node是其父亲的左儿子。
+     *
+     * @param node
+     */
+    private void deleteFixUpCase6(Node node) {
+        Node sib = sibling(node);
+
+        sib.color = node.parent.color;
+        node.parent.color = Color.BLACK;
+
+        if (node == node.parent.leftChild) {
+            sib.rightChild.color = Color.BLACK;
+            rotateLeft(node.parent);
+        } else {
+            sib.leftChild.color = Color.BLACK;
+            rotateRight(node);
+        }
+
+    }
+
 
     /**
      * 获得指定节点的祖父节点
@@ -280,11 +548,24 @@ public class RedBlackTree {
      */
     private Node getUncleNode(Node node) {
 
-        if (node.parent.parent.leftChild == node.parent) {
+        if (node.parent.parent.leftChild == node.parent)
             return node.parent.parent.rightChild;
-        } else {
+        else
             return node.parent.parent.leftChild;
-        }
+
+    }
+
+    /**
+     * 得到兄弟节点
+     *
+     * @param node
+     * @return
+     */
+    private Node sibling(Node node) {
+        if (node == node.parent.leftChild)
+            return node.parent.rightChild;
+        else
+            return node.parent.leftChild;
 
     }
 
