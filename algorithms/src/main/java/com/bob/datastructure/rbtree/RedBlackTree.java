@@ -83,10 +83,8 @@ public class RedBlackTree {
 
         Node uncleNode = getUncleNode(node);
 
-        if (uncleNode != null) {
-
-            if (uncleNode.color == Color.RED) {
-                //叔父节点是红色
+        if (uncleNode != null && uncleNode.color == Color.RED) {
+            //叔父节点是红色
 
                     /*
                          ...                     ...
@@ -97,23 +95,22 @@ public class RedBlackTree {
                    new(r)                  new(r)
 
                      */
-                //情形3:父节点和叔父节点都是红色。这种情况下，我们需要将祖父节点的颜色下沉一层，即祖父节点变成红色，父节点和叔父变成黑色。
+            //情形3:父节点和叔父节点都是红色。这种情况下，我们需要将祖父节点的颜色下沉一层，即祖父节点变成红色，父节点和叔父变成黑色。
 
 
-                uncleNode.color = Color.BLACK;
-                node.parent.color = Color.BLACK;
+            uncleNode.color = Color.BLACK;
+            node.parent.color = Color.BLACK;
 
-                getGrandParentNode(node).color = Color.RED;
+            getGrandparentNode(node).color = Color.RED;
 
-                //调整
-                insertFixUpCase1(getGrandParentNode(node));
+            //调整
+            insertFixUpCase1(getGrandparentNode(node));
 
 
-            } else {
-                //叔父节点是黑色
-                //情形4：父节点是红色，叔父节点是黑色，祖父节点肯定是黑色的，要不然就违反了红黑树不能连续红色节点的性质
-                insertFixUpCase4(node);
-            }
+        } else {
+            //叔父节点是黑色
+            //情形4：父节点是红色，叔父节点是黑色，祖父节点肯定是黑色的，要不然就违反了红黑树不能连续红色节点的性质
+            insertFixUpCase4(node);
         }
 
 
@@ -181,15 +178,26 @@ public class RedBlackTree {
 
          */
 
-        if (node.parent.leftChild == node && getGrandParentNode(node).rightChild == node.parent) {
+        if (node.parent.leftChild == node && getGrandparentNode(node).rightChild == node.parent) {
 
             rotateRight(node);
 
-        } else if (node.parent.rightChild == node && getGrandParentNode(node).leftChild == node.parent) {
+        } else if (node.parent.rightChild == node && getGrandparentNode(node).leftChild == node.parent) {
             rotateLeft(node);
         }
 
+        insertFixUpCase5(node);
+    }
 
+    private void insertFixUpCase5(Node node) {
+        node.parent.color = Color.BLACK;
+        getGrandparentNode(node).color = Color.RED;
+
+        if (node == node.parent.leftChild && node.parent == getGrandparentNode(node).leftChild) {
+            rotateRight(node.parent);
+        } else {
+            rotateLeft(node.parent);
+        }
     }
 
     /**
@@ -207,17 +215,51 @@ public class RedBlackTree {
 
          */
 
-        //对应图中的n2(r)
-        Node parent = pivot.parent;
-        //对应图中的n1(b)
-        Node grandParent = pivot.parent.parent;
+//        //对应图中的n2(r)
+//        Node parent = pivot.parent;
+//        //对应图中的n1(b)
+//        Node grandParent = pivot.parent.parent;
+//
+//        grandParent.leftChild = pivot;
+//        pivot.parent = grandParent;
+//
+//        parent.parent = pivot;
+//        parent.rightChild = pivot.leftChild;
+//        pivot.leftChild = parent;
 
-        grandParent.leftChild = pivot;
-        pivot.parent = grandParent;
+        //########### 下面是新的 ############
 
-        parent.parent = pivot;
-        parent.rightChild = pivot.leftChild;
-        pivot.leftChild = parent;
+        if (pivot.parent == null) {
+            //如果转轴是根节点
+            root = pivot;
+            return;
+        }
+
+        Node grandparentNode = getGrandparentNode(pivot);
+        Node parentNode = pivot.parent;
+        Node leftchild = pivot.leftChild;
+
+        parentNode.rightChild = leftchild;
+
+        if (!isLeaf(leftchild)) {
+            leftchild.parent = parentNode;
+        }
+
+        pivot.leftChild = parentNode;
+        parentNode.parent = pivot;
+
+        if (root == parentNode) {
+            root = pivot;
+        }
+        pivot.parent = grandparentNode;
+
+        if (grandparentNode != null) {
+            if (grandparentNode.leftChild == parentNode) {
+                grandparentNode.leftChild = pivot;
+            } else {
+                grandparentNode.rightChild = pivot;
+            }
+        }
     }
 
     /**
@@ -236,18 +278,58 @@ public class RedBlackTree {
 
          */
 
-        //对应图中的n3(r)
-        Node parent = pivot.parent;
-        //对应图中的n1(b)
-        Node grandParent = pivot.parent.parent;
+//        //对应图中的n3(r)
+//        Node parent = pivot.parent;
+//        //对应图中的n1(b)
+//        Node grandParent = pivot.parent.parent;
+//
+//        grandParent.rightChild = pivot;
+//        pivot.parent = grandParent;
+//
+//        parent.parent = pivot;
+//        parent.leftChild = pivot.rightChild;
+//        pivot.rightChild = parent;
 
-        grandParent.rightChild = pivot;
-        pivot.parent = grandParent;
+        if (pivot.parent == null) {
+            //如果转轴是根节点
+            root = pivot;
+            return;
+        }
 
-        parent.parent = pivot;
-        parent.leftChild = pivot.rightChild;
-        pivot.rightChild = parent;
+        Node grandparentNode = getGrandparentNode(pivot);
+        Node parentNode = pivot.parent;
+        Node rightChild = pivot.rightChild;
 
+        parentNode.leftChild = rightChild;
+
+        if (isLeaf(rightChild)) {
+            rightChild.parent = parentNode;
+        }
+
+        pivot.rightChild = parentNode;
+        parentNode.parent = pivot;
+
+        if (root == parentNode) {
+            root = pivot;
+        }
+        pivot.parent = grandparentNode;
+
+        if (grandparentNode != null) {
+            if (grandparentNode.leftChild == parentNode) {
+                grandparentNode.leftChild = pivot;
+            } else {
+                grandparentNode.rightChild = pivot;
+            }
+        }
+
+
+    }
+
+    private Node createLeafNode() {
+        Node leaf = new Node();
+        leaf.isLeaf = true;
+        leaf.color = Color.BLACK;
+        return leaf;
     }
 
     /**
@@ -261,6 +343,10 @@ public class RedBlackTree {
         node.color = Color.RED;
         node.value = value;
 
+        //加入叶子节点
+        node.leftChild = createLeafNode();
+        node.rightChild = createLeafNode();
+
         if (root == null) {
             root = node;
             return root;
@@ -272,7 +358,7 @@ public class RedBlackTree {
 
             if (value >= currentNode.value) {
 
-                if (currentNode.rightChild != null) {
+                if (!isLeaf(currentNode.rightChild)) {
                     currentNode = currentNode.rightChild;
                 } else {
                     currentNode.rightChild = node;
@@ -281,7 +367,7 @@ public class RedBlackTree {
                 }
 
             } else {
-                if (currentNode.leftChild != null) {
+                if (!isLeaf(currentNode.leftChild)) {
                     currentNode = currentNode.leftChild;
                 } else {
                     currentNode.leftChild = node;
@@ -304,85 +390,90 @@ public class RedBlackTree {
      */
     public boolean delete(int value) {
 
+        return deleteChild(root, value);
 
-        Node nodeForDelete = findNode(value);
-        if (nodeForDelete == null) {
-            //未找到
-            return false;
-        }
+    }
 
-        if (isLeaf(nodeForDelete.rightChild)) {
-            deleteOneChild(nodeForDelete);
+    private boolean deleteChild(Node node, int value) {
+
+        if (node.value > value) {
+            if (isLeaf(node.leftChild)) {
+                return false;
+            }
+
+            return deleteChild(node.leftChild, value);
+        } else if (node.value < value) {
+            if (isLeaf(node.rightChild)) {
+                return false;
+            }
+
+            return deleteChild(node.rightChild, value);
+
+        } else {
+            if (isLeaf(node.rightChild)) {
+                deleteOneChild(node);
+                return true;
+            }
+
+            Node smallest = getSmallestChild(node.rightChild);
+            copyValue(smallest, node);
+            deleteOneChild(smallest);
+
             return true;
         }
 
-        Node smallest = getSmallestChild(nodeForDelete.rightChild);
-        swapValue(nodeForDelete, smallest);
-        deleteOneChild(smallest);
-
-        return true;
     }
 
-    private void swapValue(Node node1, Node node2) {
 
-        int temp = node1.value;
-        node1.value = node2.value;
-        node2.value = temp;
+    private void copyValue(Node fromNode, Node toNode) {
+
+        toNode.value = fromNode.value;
     }
 
     private void deleteOneChild(Node nodeForDelete) {
         //如果右孩子是叶子节点
         Node child = isLeaf(nodeForDelete.leftChild) ? nodeForDelete.rightChild : nodeForDelete.leftChild;
 
+        if (nodeForDelete.parent == null && isLeaf(nodeForDelete.leftChild) && isLeaf(nodeForDelete.rightChild)) {
+            nodeForDelete = null;
+            root = nodeForDelete;
+            return;
+        }
+
         if (nodeForDelete.parent == null) {
-            //如果nodeForDelete节点就是根节点
+            child.parent = null;
+            root = child;
+            root.color = Color.BLACK;
+            return;
+        }
 
-            if (isLeaf(child)) {
-                //如果待替换的这个孩子节点是个叶子节点
-                //说明这棵树只有一个根节点
-                //根节点置为空，这颗红黑树成为一棵空树
-                root = null;
-            } else {
-                //孩子节点取代父节点成为新的根节点
-                child.parent = null;
-
-                //根据性质2 根节点必须是黑色的
-                child.color = Color.BLACK;
-                root = child;
-            }
-
+        //如果nodeForDelete节点不是根节点
+        //先把待删除节点的儿子节点替换他
+        if (nodeForDelete.parent.leftChild == nodeForDelete) {
+            nodeForDelete.parent.leftChild = child;
         } else {
-            //如果nodeForDelete节点不是根节点
-            //先把待删除节点的儿子节点替换他
-            if (nodeForDelete.parent.leftChild == nodeForDelete) {
-                nodeForDelete.parent.leftChild = child;
+            nodeForDelete.parent.rightChild = child;
+        }
+
+        if (child == null) {
+            return;
+        }
+
+        child.parent = nodeForDelete.parent;
+
+        //调整使之符合红黑树的性质。如果是红色的就不需要做什么，因为他被删除了并不影响红黑树的性质被破坏
+        if (nodeForDelete.color == Color.BLACK) {
+            //如果待删除节点是黑色的
+
+            if (child.color == Color.RED) {
+                //如果孩子节点是红色，只要将它变成黑色就可以达到平衡，穿过这个节点的所有路径的黑色节点数量没有减少，保证了性质5
+                child.color = Color.BLACK;
+
             } else {
-                nodeForDelete.parent.rightChild = child;
+
+                deleteFixUpCase1(child);
+
             }
-
-            if (child != null) {
-
-                child.parent = nodeForDelete.parent;
-
-                //调整使之符合红黑树的性质。如果是红色的就不需要做什么，因为他被删除了并不影响红黑树的性质被破坏
-                if (nodeForDelete.color == Color.BLACK) {
-                    //如果待删除节点是黑色的
-
-                    if (child.color == Color.RED) {
-                        //如果孩子节点是红色，只要将它变成黑色就可以达到平衡，穿过这个节点的所有路径的黑色节点数量没有减少，保证了性质5
-                        child.color = Color.BLACK;
-
-                    } else {
-
-                        deleteFixUpCase1(child);
-
-                    }
-
-
-                }
-            }
-
-
         }
     }
 
@@ -411,7 +502,7 @@ public class RedBlackTree {
      */
     private boolean isLeaf(Node node) {
 
-        if (node == null) {
+        if (node != null && node.isLeaf) {
             return true;
         }
 
@@ -575,7 +666,7 @@ public class RedBlackTree {
      * @param node
      * @return
      */
-    private Node getGrandParentNode(Node node) {
+    private Node getGrandparentNode(Node node) {
         return node.parent.parent;
     }
 
@@ -608,8 +699,8 @@ public class RedBlackTree {
 
     }
 
-    public void printNodes() {
-        printNode(root);
+    public void printNodesInOrder() {
+        printNodeInOrder(root);
     }
 
     /**
@@ -617,15 +708,25 @@ public class RedBlackTree {
      *
      * @param node
      */
-    private void printNode(Node node) {
-        if (node.leftChild != null) {
-            printNode(node.leftChild);
+    private void printNodeInOrder(Node node) {
+        if (!isLeaf(node.leftChild)) {
+            printNodeInOrder(node.leftChild);
         }
-        System.out.println(node.value);
+        System.out.println(new StringBuilder(node.value + "").append("(").append(node.color.name()).append(")"));
 
-        if (node.rightChild != null) {
-            printNode(node.rightChild);
+        if (!isLeaf(node.rightChild)) {
+            printNodeInOrder(node.rightChild);
         }
+
+    }
+
+    public void printNodes() {
+
+
+    }
+
+    private void printNodes(Node node) {
+
 
     }
 
@@ -647,12 +748,12 @@ public class RedBlackTree {
      */
     private static class Node {
 
-
         Node parent;
         Node leftChild;
         Node rightChild;
         int value;
         Color color;
+        boolean isLeaf = false;
 
     }
 }

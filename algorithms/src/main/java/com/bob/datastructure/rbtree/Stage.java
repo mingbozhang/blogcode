@@ -11,22 +11,17 @@ public class Stage {
 
         RedBlackTree redBlackTree = new RedBlackTree();
 
-        for (int i = 0; i < 50; i++) {
+        for (int i = 44; i < 55; i++) {
 
             redBlackTree.insert(i);
-            redBlackTree.insert(i + 50);
         }
 
-        for (int i = 0; i < 100; i++) {
+        System.out.println("########### 插入出数据后 ###############");
+        redBlackTree.printNodesInOrder();
 
-            if (i % 2 == 0) {
-
-                redBlackTree.delete(i);
-            }
-        }
-
-        redBlackTree.printNodes();
-
+        redBlackTree.delete(49);
+        System.out.println("########### 删除一个黑色节点49 ###############");
+        redBlackTree.printNodesInOrder();
     }
 
 }
