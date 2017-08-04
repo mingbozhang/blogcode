@@ -415,9 +415,12 @@ public class RedBlackTree {
                 return true;
             }
 
-            Node smallest = getSmallestChild(node.rightChild);
-            copyValue(smallest, node);
-            deleteOneChild(smallest);
+//            Node smallest = getSmallestChild(node.rightChild);
+
+
+            Node bigest = getBigestChild(node.leftChild);
+            copyValue(bigest, node);
+            deleteOneChild(bigest);
 
             return true;
         }
@@ -455,11 +458,8 @@ public class RedBlackTree {
             nodeForDelete.parent.rightChild = child;
         }
 
-        if (child == null) {
-            return;
-        }
-
         child.parent = nodeForDelete.parent;
+        nodeForDelete.parent = null;
 
         //调整使之符合红黑树的性质。如果是红色的就不需要做什么，因为他被删除了并不影响红黑树的性质被破坏
         if (nodeForDelete.color == Color.BLACK) {
@@ -487,11 +487,28 @@ public class RedBlackTree {
 
         Node leftChildNode = node;
 
-        while (leftChildNode.leftChild != null) {
+        while (!isLeaf(leftChildNode.leftChild)) {
             leftChildNode = leftChildNode.leftChild;
         }
 
         return leftChildNode;
+    }
+
+    /**
+     * 获取指定node下的最大节点
+     *
+     * @param node
+     * @return
+     */
+    private Node getBigestChild(Node node) {
+
+        Node rightChildNode = node;
+
+        while (!isLeaf(rightChildNode.rightChild)) {
+            rightChildNode = rightChildNode.rightChild;
+        }
+
+        return rightChildNode;
     }
 
     /**
@@ -574,7 +591,9 @@ public class RedBlackTree {
                 && sib.color == Color.BLACK
                 && sib.leftChild.color == Color.BLACK
                 && sib.rightChild.color == Color.BLACK) {
+            sib.color = Color.RED;
 
+            deleteFixUpCase1(node.parent);
 
         } else {
             deleteFixUpCase4(node);
@@ -592,7 +611,7 @@ public class RedBlackTree {
         if (sib != null
                 && sib.leftChild != null
                 && sib.rightChild != null
-                && node.parent.color == Color.BLACK
+                && node.parent.color == Color.RED
                 && sib.color == Color.BLACK
                 && sib.leftChild.color == Color.BLACK
                 && sib.rightChild.color == Color.BLACK) {

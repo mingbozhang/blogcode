@@ -22,6 +22,14 @@ public class Stage {
         redBlackTree.delete(49);
         System.out.println("########### 删除一个黑色节点49 ###############");
         redBlackTree.printNodesInOrder();
+
+        redBlackTree.delete(51);
+        System.out.println("########### 删除一个黑色节点51 ###############");
+        redBlackTree.printNodesInOrder();
+
+        redBlackTree.delete(44);
+        System.out.println("########### 删除一个黑色节点44 ###############");
+        redBlackTree.printNodesInOrder();
     }
 
 }
