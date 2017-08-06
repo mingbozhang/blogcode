@@ -418,9 +418,9 @@ public class RedBlackTree {
 //            Node smallest = getSmallestChild(node.rightChild);
 
 
-            Node bigest = getBigestChild(node.leftChild);
-            copyValue(bigest, node);
-            deleteOneChild(bigest);
+            Node biggest = getBiggestChild(node.leftChild);
+            copyValue(biggest, node);
+            deleteOneChild(biggest);
 
             return true;
         }
@@ -471,6 +471,7 @@ public class RedBlackTree {
 
             } else {
 
+                System.out.println("来自这里");
                 deleteFixUpCase1(child);
 
             }
@@ -500,7 +501,7 @@ public class RedBlackTree {
      * @param node
      * @return
      */
-    private Node getBigestChild(Node node) {
+    private Node getBiggestChild(Node node) {
 
         Node rightChildNode = node;
 
@@ -534,7 +535,7 @@ public class RedBlackTree {
     private void deleteFixUpCase1(Node node) {
         if (node.parent == null) {
             //情形1：node是新的根
-
+            System.out.println("删除情形一");
         } else {
             deleteFixUpCase2(node);
         }
@@ -550,6 +551,8 @@ public class RedBlackTree {
 
         Node sib = sibling(node);
         if (sib.color == Color.RED) {
+
+            System.out.println("删除情形二");
 
             sib.color = Color.BLACK;
             node.parent.color = Color.RED;
@@ -582,6 +585,7 @@ public class RedBlackTree {
      * @param node
      */
     private void deleteFixUpCase3(Node node) {
+        System.out.println("删除情形三");
         Node sib = sibling(node);
 
         if (sib != null
@@ -606,6 +610,7 @@ public class RedBlackTree {
      * @param node
      */
     private void deleteFixUpCase4(Node node) {
+
         Node sib = sibling(node);
 
         if (sib != null
@@ -615,6 +620,8 @@ public class RedBlackTree {
                 && sib.color == Color.BLACK
                 && sib.leftChild.color == Color.BLACK
                 && sib.rightChild.color == Color.BLACK) {
+
+            System.out.println("删除情形四");
 
             sib.color = Color.RED;
             node.parent.color = Color.BLACK;
@@ -639,17 +646,21 @@ public class RedBlackTree {
                     && sib.leftChild.color == Color.RED
                     ) {
 
+                System.out.println("删除情形五1");
+
                 sib.color = Color.RED;
                 sib.leftChild.color = Color.BLACK;
-                rotateRight(sib);
+                rotateRight(sib.leftChild);
 
             } else if (node == node.parent.rightChild
                     && sib.leftChild.color == Color.BLACK
                     && sib.rightChild.color == Color.RED) {
 
+                System.out.println("删除情形五2");
+
                 sib.color = Color.RED;
                 sib.rightChild.color = Color.BLACK;
-                rotateLeft(sib);
+                rotateLeft(sib.rightChild);
             }
         }
 
@@ -663,6 +674,9 @@ public class RedBlackTree {
      * @param node
      */
     private void deleteFixUpCase6(Node node) {
+
+        System.out.println("删除情形六");
+
         Node sib = sibling(node);
 
         sib.color = node.parent.color;
@@ -670,11 +684,14 @@ public class RedBlackTree {
 
         if (node == node.parent.leftChild) {
             sib.rightChild.color = Color.BLACK;
-            rotateLeft(node.parent);
+//            rotateLeft(node.parent);
+            rotateLeft(sib);
         } else {
             sib.leftChild.color = Color.BLACK;
-            rotateRight(node);
+//            rotateRight(node);
+            rotateRight(sib);
         }
+
 
     }
 

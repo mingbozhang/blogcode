@@ -19,17 +19,25 @@ public class Stage {
         System.out.println("########### 插入出数据后 ###############");
         redBlackTree.printNodesInOrder();
 
+//        System.out.println("########### 删除一个节点47 ###############");
+//        redBlackTree.delete(47);
+//        redBlackTree.printNodesInOrder();
+//
+        System.out.println("########### 删除一个节点49 ###############");
         redBlackTree.delete(49);
-        System.out.println("########### 删除一个黑色节点49 ###############");
         redBlackTree.printNodesInOrder();
 
-        redBlackTree.delete(51);
-        System.out.println("########### 删除一个黑色节点51 ###############");
-        redBlackTree.printNodesInOrder();
-
-        redBlackTree.delete(44);
-        System.out.println("########### 删除一个黑色节点44 ###############");
-        redBlackTree.printNodesInOrder();
+//        System.out.println("########### 删除一个节点51 ###############");
+//        redBlackTree.delete(51);
+//        redBlackTree.printNodesInOrder();
+//
+//        System.out.println("########### 删除一个节点44 ###############");
+//        redBlackTree.delete(44);
+//        redBlackTree.printNodesInOrder();
+//
+//        System.out.println("########### 删除一个节点48 ###############");
+//        redBlackTree.delete(48);
+//        redBlackTree.printNodesInOrder();
     }
 
 }
